@@ -22,19 +22,40 @@ def getUsers(request):
 def getUserById(request, id):
     if request.method == 'GET':
         id = int(id)
-        user = Users.objects.get(id=id)
-        if user is not None:
+        
+        if Users.objects.filter(id = id).exists():
+            user = Users.objects.get(id=id)
             userDict = dict(id=user.id, user_name = user.user_name, user_email=user.user_email,
             user_password = user.user_password, user_phone = user.user_phone)
             return HttpResponse(json.dumps(userDict),content_type='application/json')
+        else:
+            userDict = dict(id = None)
+            return HttpResponse(json.dumps(userDict), content_type = 'application/json')
+
+def userLogin(request):
+    if request.method == 'POST':
+        received_data = json.loads(request.body.decode("utf-8"))
+        if Users.objects.filter(user_email = received_data['user_email']).exists():
+            user = Users.objects.get(user_email = received_data['user_email'])
+            if user.user_password == received_data['user_password']:
+                userDict = dict(result = True)
+            else: userDict = dict(result = False)
+        else:
+            userDict = dict(result = None)
+        return HttpResponse(json.dumps(userDict), content_type = 'application/json')
 
 def getUserByEmail(request, email):
     if request.method == 'GET':
-        user = Users.objects.get(user_email = email)
-        if user is not None:
+        
+        
+        if Users.objects.filter(user_email = email).exists():
+            user = Users.objects.get(user_email = email)
             userDict = dict(id=user.id, user_name = user.user_name, user_email=user.user_email,
             user_password = user.user_password, user_phone = user.user_phone)
             return HttpResponse(json.dumps(userDict), content_type='application/json')
+        else:
+            userDict = dict(id = None)
+            return HttpResponse(json.dumps(userDict), content_type = 'application/json')
 
 def createUser(request):
     if request.method == 'POST':
@@ -49,7 +70,6 @@ def createUser(request):
             user_email = rececived_data['user_email'], user_phone = rececived_data['user_phone'])
             print(user)
             user.save()
-            data = dict(id = user.id, user_name = user.user_name, user_email = user.user_email,
-            user_password = user.user_password, user_phone = user.user_phone )
+            data = dict(id = user.id)
             return HttpResponse(json.dumps(data), content_type='application/json')
 
