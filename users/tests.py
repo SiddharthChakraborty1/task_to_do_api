@@ -57,6 +57,7 @@ class UserAPITestCase(TestCase):
         
         response = self.client.get("/api/users/getUsers/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     
     def test_userById(self):
         response = self.client.get("/api/users/getUserById/90/")
