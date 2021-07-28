@@ -3,6 +3,7 @@ from .models import Users
 import json
 from django.http import HttpResponse
 from django.core import serializers
+from django.views.generic import  View
 
 # Create your views here.
 
@@ -18,6 +19,35 @@ def getUsers(request):
             userList.append(userDict)
         data = json.dumps(userList)
         return HttpResponse(data, content_type='application/json')
+
+
+class UserView(View):
+    def get(self, request, **kwargs):
+        id = int(kwargs['id'])
+        if Users.objects.filter(id = id).exists():
+            user = Users.objects.get(id = id)
+            userDict = dict(id = user.id,
+                            user_name = user.user_name)
+
+            return HttpResponse(json.dumps(userDict), content_type='application/json')
+    
+    def post(self, request,**kwargs):
+        received_data = json.loads(request.body.decode("utf-8"))
+        email = received_data['user_email']
+        if Users.objects.filter(user_email = email).exists():
+            userDict = dict(id = None)
+            return HttpResponse(json.dumps(userDict), content_type= 'application/json')
+        else:
+            received_data = json.loads(request.body.decode("utf-8"))
+            user = Users.objects.create(user_name = received_data['user_name'],
+            user_password = received_data['user_password'],
+            user_email = received_data['user_email'],
+            user_phone = received_data['user_phone'])
+            user.save()
+            userDict = dict(id = user.id,
+            user_name = user.user_name)
+            return HttpResponse(json.dumps(userDict), content_type = 'application/json')
+        
 
 def getUserById(request, id):
     if request.method == 'GET':
