@@ -14,7 +14,7 @@ from drf_tutorial.Serializer import SingerSerializer
 # Create your tests here.
 
 ## checking if a new singer is being added to the database using the post method
-class SingerTestCase(APITestCase):
+class APITestCase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
