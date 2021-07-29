@@ -8,7 +8,7 @@ import rest_framework
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
-from drf_tutorial.models import Singer
+from drf_tutorial.models import Singer, Song
 from drf_tutorial.Serializer import SingerSerializer
 
 # Create your tests here.
@@ -19,7 +19,10 @@ class SingerTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.singer= Singer.objects.create(name = "Siddharth", label="Berklee college of music")
+        self.song = Song.objects.create(title = "dummy song 1", duration = 5, singer = self.singer)
 
+
+#Test cases for Singers
 
     def test_singerCreate(self):
         data = dict(name="singer1", label="DnH")
@@ -53,3 +56,42 @@ class SingerTestCase(APITestCase):
         nos = Singer.objects.all().count()
         response = self.client.delete(f"/singer/{self.singer.id}/")
         self.assertEqual(Singer.objects.all().count(), nos-1)
+    
+# Test cases for Songs
+
+    def test_songCreate(self):
+        data = dict(title = "dummy song title 2", duration = 4, singer = self.singer.id)
+        response = self.client.post("/song/", data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Song.objects.all().count(), 2)
+    
+    def test_songGet(self):
+        response = self.client.get("/song/")
+        self.assertEqual(len(response.data),1)
+
+    def test_songGetById(self):
+        response = self.client.get(f"/song/{self.song.id}/")
+        self.assertEqual(response.data['title'], self.song.title)
+
+    def test_songUpdate(self):
+        data = dict(
+        title = "updated title", duration = 90,
+        singer = self.singer.id)
+        response = self.client.put(f"/song/{self.song.id}/", data)
+        dummy_song = Song.objects.get(id = self.song.id)
+        self.assertEqual(dummy_song.title, "updated title")
+        print("Printing song update")
+        print(response.status_code)
+
+        # Note: the json object structure for creating or updating a song in this
+        # model representation will be as follows:
+        # {
+            # "title": "Updated title",
+            # "duration": 8,
+            # "singer": <id of singer>
+        # }
+    
+    def test_songDelete(self):
+        no_of_songs = Song.objects.all().count()
+        response = self.client.delete(f"/song/{self.song.id}/")
+        self.assertEqual(Song.objects.all().count(), no_of_songs - 1)
